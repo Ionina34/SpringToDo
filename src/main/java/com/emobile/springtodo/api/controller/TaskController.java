@@ -2,6 +2,7 @@ package com.emobile.springtodo.api.controller;
 
 import com.emobile.springtodo.api.input.CreateTaskRequest;
 import com.emobile.springtodo.api.mapper.ResponseMapper;
+import com.emobile.springtodo.api.output.ApiResponse;
 import com.emobile.springtodo.api.output.task.ListTaskResponse;
 import com.emobile.springtodo.api.output.task.TaskResponse;
 import com.emobile.springtodo.core.entity.dto.TaskDto;
@@ -28,42 +29,51 @@ public class TaskController {
     private ResponseMapper responseMapper;
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable("id") Long id) throws ObjectNotFoundException {
+    public ApiResponse<TaskResponse> getTask(@PathVariable("id") Long id) throws ObjectNotFoundException {
         TaskDto task = taskService.getTaskById(id);
-        return ResponseEntity.ok(
-                responseMapper.taskToResponse(task)
+        return new ApiResponse<>(
+                responseMapper.taskToResponse(task),
+                HttpStatus.OK
         );
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<ListTaskResponse> getTasks(@PathVariable("userId") Long userId) throws ObjectNotFoundException {
-        List<TaskDto> tasks = taskService.getTasksByUser(userId);
-        return ResponseEntity.ok(
-                responseMapper.listTaskToResponse(tasks)
+    public ApiResponse<ListTaskResponse> getTasks(
+            @PathVariable("userId") Long userId,
+            @RequestParam(value = "limit", defaultValue = "10") int limit,
+            @RequestParam(value = "offset", defaultValue = "0") int offset) throws ObjectNotFoundException {
+        List<TaskDto> tasks = taskService.getTasksByUser(userId, limit, offset);
+        Long total = taskService.getTaskCountByUser(userId);
+        return new ApiResponse<>(
+                responseMapper.listTaskToResponse(tasks, total, limit, offset),
+                HttpStatus.OK
         );
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) throws ObjectNotFoundException {
+    public ApiResponse<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) throws ObjectNotFoundException {
         TaskDto task = taskService.createTask(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                responseMapper.taskToResponse(task)
+        return new ApiResponse<>(
+                responseMapper.taskToResponse(task),
+                HttpStatus.CREATED
         );
     }
 
     @PostMapping("/start/{id}")
-    public ResponseEntity<TaskResponse> startTask(@PathVariable("id") Long id, @RequestBody Long userId) throws AccessRightsException, ObjectNotFoundException {
+    public ApiResponse<TaskResponse> startTask(@PathVariable("id") Long id, @RequestBody Long userId) throws AccessRightsException, ObjectNotFoundException {
         TaskDto task = taskService.startTask(id, userId);
-        return ResponseEntity.ok(
-                responseMapper.taskToResponse(task)
+        return new ApiResponse<>(
+                responseMapper.taskToResponse(task),
+                HttpStatus.OK
         );
     }
 
     @PostMapping("/end/{id}")
-    public ResponseEntity<TaskResponse> endTask(@PathVariable("id") Long id, @RequestBody Long userId) throws AccessRightsException, ObjectNotFoundException {
+    public ApiResponse<TaskResponse> endTask(@PathVariable("id") Long id, @RequestBody Long userId) throws AccessRightsException, ObjectNotFoundException {
         TaskDto task = taskService.endTask(id, userId);
-        return ResponseEntity.ok(
-                responseMapper.taskToResponse(task)
+        return new ApiResponse<>(
+                responseMapper.taskToResponse(task),
+                HttpStatus.OK
         );
     }
 }

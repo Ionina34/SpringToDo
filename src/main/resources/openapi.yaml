@@ -76,7 +76,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TaskGetResponse200"
+                $ref: "#/components/schemas/TaskByUserGetResponse200"
         '404':
           description: Пользователь не найден
           content:
@@ -219,6 +219,100 @@ paths:
         '200':
           description: Пользователь удален
 
+  /actuator/health:
+    get:
+      summary: Получить статус работоспособности приложения
+      operationId: getHealth
+      responses:
+        '200':
+          description: Состояние работоспособности приложения
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Общее состояние
+                    example: UP
+                  components:
+                    type: object
+                    description: Подробно состояние компонентов (например, db, redis)
+                    example:
+                      db: { status: "UP", details: { database: "PostgreSQL", validationQuery: "isValid()" } }
+                      redis: { status: "UP" }
+
+  /actuator/metrics:
+    get:
+      summary: Получить доступные показатели
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Список доступных показателей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  names:
+                    type: array
+                    items:
+                      type: string
+                    description: Список названия показателей
+                    example: [ "jvm.memory.max", "tasks.completed.total" ]
+
+  /actuator/metrics/{metricName}:
+    get:
+      summary: Получить подробную информацию о конкретной метрике
+      operationId: getMetricDetails
+      parameters:
+        - name: metricName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Название извлекаемого показателя
+          example: tasks.completed.total
+      responses:
+        '200':
+          description: Подробные сведения об указанном показателе
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Название показателя
+                    example: tasks.completed.total
+                  measurements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        statistic:
+                          type: string
+                          description: Тип измерения
+                          example: COUNT
+                        value:
+                          type: number
+                          description: Значение измерения
+                          example: 42
+
+  /actuator/info:
+    get:
+      summary: Получить информацию о приложении
+      operationId: getInfo
+      responses:
+        '200':
+          description: Информации о приложении
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Настраиваемая информацию о приложении
+                example: { app: { name: "Todo API", version: "1.0.0" } }
+
 components:
   schemas:
     TaskGetResponse200:
@@ -249,6 +343,22 @@ components:
         start: 2023-04-12 14:30:00
         deadline: 2023-04-13 16:30:00
         end: 2023-04-12 21:45:03
+
+
+    TaskByUserGetResponse200:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskGetResponse200'
+          description: List of tasks for the user
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
 
     TaskGetResponse404:
       type: object

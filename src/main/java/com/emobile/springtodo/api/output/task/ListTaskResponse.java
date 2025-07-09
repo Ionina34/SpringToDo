@@ -11,4 +11,7 @@ import java.util.List;
 @Setter
 public class ListTaskResponse {
     List<TaskResponse> tasks;
+    private long total;
+    private int limit;
+    private int offset;
 }

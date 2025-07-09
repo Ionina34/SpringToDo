@@ -16,3 +16,22 @@ spring:
   redis:
     host: redis-cache
     port: 6379
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  packages-to-scan: cam.emobile.springtodo
+  paths-to-match: /api/v1/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+    endpoint:
+      health:
+        show-details: always
+      metrics:
+        enabled: true
+      info:
+        enabled: true

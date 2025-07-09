@@ -74,28 +74,31 @@ public interface ITaskController {
                                     examples = {
                                             @ExampleObject(
                                                     value = """
-                                                            [
-                                                            {
-                                                                "id": 10,
-                                                                "userId": 5,
-                                                                "title": "Домашний быт",
-                                                                "description": "Помыть посуду",
-                                                                "status": "TODO",
-                                                                "start": "2023-04-12 14:30:00",
-                                                                "deadline": "2023-04-12 18:00:00",
-                                                                "end": "2023-04-12 17:15:15"
-                                                            },
-                                                            {
-                                                                "id": 7,
-                                                                "userId": 5,
-                                                                "title": "Работа",
-                                                                "description": "Заполнить документы",
-                                                                "status": "IN_PROGRESS",
-                                                                "start": "2023-07-12 14:30:00",
-                                                                "deadline": "2023-07-17 18:00:00",
-                                                                "end": "2023-04-15 13:15:00"
-                                                            }
-                                                            ]
+                                                            tasks: [
+                                                                 {
+                                                                     "id": 10,
+                                                                     "userId": 5,
+                                                                     "title": "Домашний быт",
+                                                                     "description": "Помыть посуду",
+                                                                     "status": "TODO",
+                                                                     "start": "2023-04-12 14:30:00",
+                                                                     "deadline": "2023-04-12 18:00:00",
+                                                                     "end": "2023-04-12 17:15:15"
+                                                                 },
+                                                                 {
+                                                                     "id": 7,
+                                                                     "userId": 5,
+                                                                     "title": "Работа",
+                                                                     "description": "Заполнить документы",
+                                                                     "status": "IN_PROGRESS",
+                                                                     "start": "2023-07-12 14:30:00",
+                                                                     "deadline": "2023-07-17 18:00:00",
+                                                                     "end": "2023-04-15 13:15:00"
+                                                                 }
+                                                                 ],
+                                                            total: 14,
+                                                            limit: 2,
+                                                            offset: 1
                                                             """
                                             )
                                     }

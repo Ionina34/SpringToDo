@@ -9,13 +9,13 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -35,37 +35,45 @@ public class TaskJDBCRepository {
         return Optional.ofNullable(task);
     }
 
-    public List<Task> findByUser(Long userId) {
-        String sql = "SELECT * FROM tasks WHERE user_id = ?";
+    public List<Task> findByUser(Long userId, int limit, int offset) {
+        String sql = "SELECT * FROM tasks WHERE user_id = ? ORDER BY id LIMIT ? OFFSET ?";
         return jdbcTemplate.query(
                 sql,
-                new ArgumentPreparedStatementSetter(new Object[]{userId}),
+                new ArgumentPreparedStatementSetter(new Object[]{userId, limit, offset}),
                 new TaskRowMapper()
         );
     }
 
-    public Task save(Task task) {
-        task.setId(System.currentTimeMillis());
-        task.setCreatedAt(new Timestamp(new Date().getTime()));
-        String sql = "SELECT INTO tasks (id, user_id, title, description, status, deadline, created_at, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(
-                sql,
-                task.getId(),
-                task.getUserId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus().toString(),
-                task.getDeadline(),
-                task.getCreatedAt(),
-                task.getEndData()
+    public Long getTaskCountByUser(Long userId) {
+        String sql = "SELECT COUNT(*) FROM tasks WHERE userId = ?";
+        return DataAccessUtils.singleResult(
+                jdbcTemplate.query(
+                        sql,
+                        new ArgumentPreparedStatementSetter(new Object[]{userId}),
+                        new RowMapperResultSetExtractor<>(
+                                (rs, rowNum) -> rs.getLong(1), 1)
+                )
         );
-        return task;
     }
 
-    public Task update(Task task) {
-        Task existsTask = findById(task.getId()).orElse(null);
-
-        if (existsTask != null) {
+    public Task save(Task task) {
+        if (task.getId() == null) {
+            task.setCreatedAt(new Timestamp(new Date().getTime()));
+            String sql = "SELECT INTO tasks (user_id, title, description, status, deadline, created_at, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbcTemplate.update(connection -> {
+                PreparedStatement stmt = connection.prepareStatement(sql);
+                stmt.setLong(1, task.getUserId());
+                stmt.setString(2, task.getTitle());
+                stmt.setString(3, task.getDescription());
+                stmt.setString(4, task.getStatus().toString());
+                stmt.setTimestamp(5, task.getDeadline());
+                stmt.setTimestamp(6, task.getCreatedAt());
+                stmt.setTimestamp(7, task.getEndData());
+                return stmt;
+            }, keyHolder);
+            task.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        } else {
             String sql = "UPDATE tasks SET title = ?, description = ?, status = ?, deadline = ?, created_at = ?, end_data = ? WHERE id = ?";
             jdbcTemplate.update(
                     sql,
@@ -77,8 +85,7 @@ public class TaskJDBCRepository {
                     task.getEndData(),
                     task.getId()
             );
-            return task;
         }
-        throw new ObjectNotFoundException("Task with id: " + task.getId() + " not found");
+        return task;
     }
 }
