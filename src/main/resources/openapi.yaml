@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: App docs
+  description: OpenAPI specification for ToDo-Service\
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080/api/v1/todo'
+    description: development url
+tags:
+  - name: ToDo API
+    description: ToDo Service endpoints
+paths:
+  "/task":
+    description: Получение задачи по ID
+    summary: Получение задачи
+    get:
+      tags:
+        - ToDo API
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID задачи
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse200"
+        '404':
+          '200':
+            description: Задача не найдена
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/TaskGetResponse404"
+    post:
+      tags:
+        - ToDo API
+      description: Сохранение задачи
+      requestBody:
+        description: Задача
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveTaskRequest"
+      responses:
+        '200':
+          description: Задача сохранена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse200"
+        '404':
+          '200':
+            description: Пользователь не найден
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/UserGetResponse404"
+
+  "/task/user":
+    get:
+      tags:
+        - ToDo API
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID пользователя
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse200"
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGetResponse404"
+
+  "/task/start":
+    post:
+      tags:
+        - ToDo API
+      description: Старт задачи
+      parameters:
+        - name: id
+          in: path
+          description: ID задачи
+          required: true
+      requestBody:
+        description: Пользователь обладающий задачей
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartEndTaskRequest"
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse200"
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse404"
+        '403':
+          description: Пользователь не имеет прав на задачу
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStartEndResponse403"
+
+  "/task/end":
+    post:
+      tags:
+        - ToDo API
+      description: Стоп задачи
+      parameters:
+        - name: id
+          in: path
+          description: ID задачи
+          required: true
+      requestBody:
+        description: Пользователь обладающий задачей
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartEndTaskRequest"
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse200"
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskGetResponse404"
+        '403':
+          description: Пользователь не имеет прав на задачу
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskStartEndResponse403"
+
+  "/user":
+    description: Получение пользователя по ID
+    summary: Получение пользователя
+    get:
+      tags:
+        - ToDo API
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID пользователя
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGetResponse200"
+        '404':
+          description: Пользователь не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGetResponse404"
+    post:
+      tags:
+        - ToDo API
+      description: Сохранение пользователя
+      requestBody:
+        description: Пользователь
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveUserRequest"
+      responses:
+        '200':
+          description: Пользователь сохранен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGetResponse200"
+        '400':
+          description: Пользователь уже существует с такими данными
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveUserResponse400"
+    delete:
+      tags:
+        - ToDo API
+      description: Удаление пользователя
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID пользователя
+      responses:
+        '200':
+          description: Пользователь удален
+
+components:
+  schemas:
+    TaskGetResponse200:
+      type: object
+      properties:
+        id:
+          type: long
+        userId:
+          type: long
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        start:
+          type: string
+        deadline:
+          type: string
+        end:
+          type: string
+      example:
+        id: 15
+        userId: 3
+        title: Title example
+        description: Description task
+        status: TODO
+        start: 2023-04-12 14:30:00
+        deadline: 2023-04-13 16:30:00
+        end: 2023-04-12 21:45:03
+
+    TaskGetResponse404:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+      example:
+        status: 404
+        message: Task not found with id 15
+        timestamp: 2023-04-12 14:30:00
+
+    SaveTaskRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        deadline:
+          type: string
+      example:
+        userId: 36
+        title: New title for new task
+        description: Description new task
+        deadline: 2023-04-12 14:30:00
+
+    UserGetResponse404:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+      example:
+        status: 404
+        message: User not found with id 105
+        timestamp: 2023-04-12 14:30:00
+
+    StartEndTaskRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: integer
+      example:
+        userId: 7
+
+    TaskStartEndResponse403:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+      example:
+        status: 403
+        message: User access rights error
+        timestamp: 2023-04-12 14:30:00
+
+
+    UserGetResponse200:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+      example:
+        id: 52
+        username: Sergey
+        email: email@mail.ru
+
+
+    SaveUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      example:
+        username: Ivan
+        email: ivan@mail.ru
+
+    SaveUserResponse400:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+      example:
+        status: 400
+        message: User already exists with username or email
+        timestamp: 2023-04-12 14:30:00
