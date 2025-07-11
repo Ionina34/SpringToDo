@@ -1,13 +1,15 @@
 package com.emobile.springtodo.core.entity.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.io.Serializable;
 
 @NoArgsConstructor
 @Setter
 @Getter
-public class UserDto {
+@EqualsAndHashCode
+@ToString
+public class UserDto implements Serializable {
     private Long id;
     private String username;
     private String email;

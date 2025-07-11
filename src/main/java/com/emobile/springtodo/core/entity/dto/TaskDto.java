@@ -1,17 +1,17 @@
 package com.emobile.springtodo.core.entity.dto;
 
 import com.emobile.springtodo.core.entity.db.TaskStatus;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.sql.Date;
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
 @Setter
-public class TaskDto {
+@EqualsAndHashCode
+@ToString
+public class TaskDto implements Serializable {
     private Long id;
     private Long userId;
     private String title;

@@ -8,24 +8,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.sql.Date;
+import java.sql.Timestamp;
 
 @NoArgsConstructor
 @Getter
 @Setter
-public class CreateTaskRequest {
+public class CreateTaskRequest implements Serializable {
 
-    @NotNull(message = "Идентификатор пользователя должен быть указан")
-    @Positive(message = "Идентификатор должен быть положительным")
+    @NotNull(message = "User ID must be specified")
+    @Positive(message = "ID must be positive")
     private Long userId;
 
-    @NotBlank(message = "Заголовок должен быть указан")
+    @NotBlank(message = "Title must be specified")
     private String title;
 
-    @NotBlank(message = "Описание должно быть указано")
+    @NotBlank(message = "Description must be specified")
     private String description;
 
-    @NotNull(message = "Дедлайн должен быть указан")
-    @FutureOrPresent(message = "Дедлайн не может быть раньше сегодняшней даты")
-    private Date deadline;
+    @NotNull(message = "Deadline must be specified")
+    @FutureOrPresent(message = "Deadline cannot be earlier than today")
+    private Timestamp deadline;
 }

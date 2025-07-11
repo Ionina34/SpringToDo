@@ -1,7 +1,9 @@
 package com.emobile.springtodo.core.exception;
 
-public class ObjectNotFoundException extends RuntimeException {
-    public ObjectNotFoundException(String message) {
-        super(message);
+import java.sql.Timestamp;
+
+public class ObjectNotFoundException extends ToDoAppException {
+    public ObjectNotFoundException(String message, Timestamp timestamp) {
+        super(message, timestamp);
     }
 }

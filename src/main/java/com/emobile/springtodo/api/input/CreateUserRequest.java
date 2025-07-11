@@ -6,15 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @NoArgsConstructor
 @Setter
 @Getter
-public class CreateUserRequest {
+public class CreateUserRequest implements Serializable {
 
-    @NotBlank(message = "Имя пользователя должно быть указано")
+    @NotBlank(message = "Username must be specified")
     private String username;
 
-    @NotBlank(message = "Электронный адрес должен быть указан")
-    @Email(message = "Электронный адрес должен быть вида: Имя_Пользователя@Домен")
+    @NotBlank(message = "Email address must be specified")
+    @Email(message = "Email address must be of the form: user_name@Domain")
     private String email;
 }

@@ -11,11 +11,12 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
     drop-first: true
-  cache:
-    type: redis
-  redis:
-    host: redis-cache
-    port: 6379
+  data:
+    redis:
+      host: redis
+      timeout: 60000
+      database: 0
+      port: 6379
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -35,3 +36,23 @@ management:
         enabled: true
       info:
         enabled: true
+
+app:
+  redis:
+    enable: true
+  cache:
+    cacheType: REDIS
+    cacheNames:
+      - taskById
+      - tasksByUser
+      - taskCount
+      - userById
+    caches:
+      taskById:
+        expiry: PT1H
+      userById:
+        expiry: PT1H
+      tasksByUser:
+        expiry: PT1H
+      taskCount:
+        expiry: PT30M

@@ -10,6 +10,8 @@ import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Objects;
 
 @Aspect
@@ -27,7 +29,7 @@ public class VerifyingUserRights {
             Long id = (Long) args[0];
             TaskDto task = taskService.getTaskById(id);
             if (!Objects.equals(userId, task.getUserId())) {
-                throw new AccessRightsException("Ошибка прав доступа пользователя!");
+                throw new AccessRightsException("Ошибка прав доступа пользователя!", Timestamp.from(Instant.now()));
             }
         }
     }

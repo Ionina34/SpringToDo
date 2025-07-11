@@ -19,13 +19,16 @@ public interface ResponseMapper {
     @Mapping(source = "id", target = "id")
     UserResponse userToResponse(UserDto userDto);
 
-    default ListTaskResponse listTaskToResponse(List<TaskDto> tasks) {
+    default ListTaskResponse listTaskToResponse(List<TaskDto> tasks, long total, int limit, int offset) {
         ListTaskResponse response = new ListTaskResponse();
         response.setTasks(
                 tasks.stream()
                         .map(this::taskToResponse)
                         .toList()
         );
+        response.setTotal(total);
+        response.setLimit(limit);
+        response.setOffset(offset);
         return response;
     }
 }

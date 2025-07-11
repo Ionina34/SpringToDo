@@ -20,7 +20,7 @@ public class TaskRowMapper implements RowMapper<Task> {
         );
         task.setDeadline(rs.getTimestamp("deadline"));
         task.setCreatedAt(rs.getTimestamp("created_at"));
-        task.setEndData(rs.getTimestamp("end_data"));
+        task.setEndData(rs.getTimestamp("end_date"));
         return task;
     }
 }

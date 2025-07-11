@@ -1,7 +1,9 @@
 package com.emobile.springtodo.core.exception;
 
-public class AccessRightsException extends RuntimeException{
-    public AccessRightsException(String message) {
-        super(message);
+import java.sql.Timestamp;
+
+public class AccessRightsException extends ToDoAppException{
+    public AccessRightsException(String message, Timestamp timestamp) {
+        super(message, timestamp);
     }
 }

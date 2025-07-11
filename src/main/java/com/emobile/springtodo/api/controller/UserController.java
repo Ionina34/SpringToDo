@@ -2,6 +2,7 @@ package com.emobile.springtodo.api.controller;
 
 import com.emobile.springtodo.api.input.CreateUserRequest;
 import com.emobile.springtodo.api.mapper.ResponseMapper;
+import com.emobile.springtodo.api.output.ApiResponse;
 import com.emobile.springtodo.api.output.user.UserResponse;
 import com.emobile.springtodo.core.entity.dto.UserDto;
 import com.emobile.springtodo.core.exception.ObjectNotFoundException;
@@ -10,11 +11,9 @@ import com.emobile.springtodo.core.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequestMapping("/api/v1/todo/user")
 public class UserController {
 
@@ -28,24 +27,29 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable("id") Long id) throws ObjectNotFoundException {
-        UserDto user = userService.getUserById(id);
-        return ResponseEntity.ok(
-                responseMapper.userToResponse(user)
+    public ApiResponse<UserResponse> getUser(@PathVariable("id") Long id) throws ObjectNotFoundException {
+        UserDto user = userService.getUserDtoById(id);
+        return new ApiResponse<>(
+                responseMapper.userToResponse(user),
+                HttpStatus.OK
         );
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) throws UserAlreadyExistsException {
+    public ApiResponse<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) throws UserAlreadyExistsException {
         UserDto user = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                responseMapper.userToResponse(user)
+        return new ApiResponse<>(
+                responseMapper.userToResponse(user),
+                HttpStatus.CREATED
         );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
+    public ApiResponse<Void> deleteUser(@PathVariable("id") Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        return new ApiResponse<>(
+                Void.TYPE.cast(null),
+                HttpStatus.OK
+        );
     }
 }
