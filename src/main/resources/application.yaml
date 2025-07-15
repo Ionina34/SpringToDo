@@ -1,0 +1,58 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/todo
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    drop-first: true
+  data:
+    redis:
+      host: redis
+      timeout: 60000
+      database: 0
+      port: 6379
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  packages-to-scan: cam.emobile.springtodo
+  paths-to-match: /api/v1/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+    endpoint:
+      health:
+        show-details: always
+      metrics:
+        enabled: true
+      info:
+        enabled: true
+
+app:
+  redis:
+    enable: true
+  cache:
+    cacheType: REDIS
+    cacheNames:
+      - taskById
+      - tasksByUser
+      - taskCount
+      - userById
+    caches:
+      taskById:
+        expiry: PT1H
+      userById:
+        expiry: PT1H
+      tasksByUser:
+        expiry: PT1H
+      taskCount:
+        expiry: PT30M

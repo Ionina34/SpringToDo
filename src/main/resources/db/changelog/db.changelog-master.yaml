@@ -1,0 +1,90 @@
+databaseChangeLog:
+  - changeSet:
+      id:  create-table-users
+      author: dasha
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: user_pk
+                    nullable: false
+              - column:
+                  name: username
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: create-type-status
+      author: dasha
+      changes:
+        - sql:
+            sql: CREATE TYPE status_enum AS ENUM ('TODO', 'IN_PROGRESS', 'DONE');
+            dbms: postgresql
+  - changeSet:
+      id: create-table-tasks
+      author: dasha
+      changes:
+        - createTable:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: task_pk
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_task_user
+                    references: users(id)
+              - column:
+                  name: title
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: status_enum
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deadline
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_data
+                  type: datetime
+                  constraints:
+                    nullable: false
