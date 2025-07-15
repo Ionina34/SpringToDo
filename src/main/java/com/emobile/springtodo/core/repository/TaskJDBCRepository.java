@@ -45,7 +45,7 @@ public class TaskJDBCRepository {
     }
 
     public Long getTaskCountByUser(Long userId) {
-        String sql = "SELECT COUNT(*) FROM tasks WHERE userId = ?";
+        String sql = "SELECT COUNT(*) FROM tasks WHERE user_id = ?";
         return DataAccessUtils.singleResult(
                 jdbcTemplate.query(
                         sql,
@@ -59,14 +59,14 @@ public class TaskJDBCRepository {
     public Task save(Task task) {
         if (task.getId() == null) {
             task.setCreatedAt(new Timestamp(new Date().getTime()));
-            String sql = "SELECT INTO tasks (user_id, title, description, status, deadline, created_at, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO tasks (user_id, title, description, status, deadline, created_at, end_date) VALUES (?, ?, ?, ?::task_status, ?, ?, ?)";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(connection -> {
-                PreparedStatement stmt = connection.prepareStatement(sql);
+                PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"id"});
                 stmt.setLong(1, task.getUserId());
                 stmt.setString(2, task.getTitle());
                 stmt.setString(3, task.getDescription());
-                stmt.setString(4, task.getStatus().toString());
+                stmt.setString(4, task.getStatus().name());
                 stmt.setTimestamp(5, task.getDeadline());
                 stmt.setTimestamp(6, task.getCreatedAt());
                 stmt.setTimestamp(7, task.getEndData());
@@ -74,12 +74,12 @@ public class TaskJDBCRepository {
             }, keyHolder);
             task.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         } else {
-            String sql = "UPDATE tasks SET title = ?, description = ?, status = ?, deadline = ?, created_at = ?, end_data = ? WHERE id = ?";
+            String sql = "UPDATE tasks SET title = ?, description = ?, status = ?::task_status, deadline = ?, created_at = ?, end_date = ? WHERE id = ?";
             jdbcTemplate.update(
                     sql,
                     task.getTitle(),
                     task.getDescription(),
-                    task.getStatus().toString(),
+                    task.getStatus().name(),
                     task.getDeadline(),
                     task.getCreatedAt(),
                     task.getEndData(),

@@ -7,8 +7,14 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -54,15 +60,17 @@ public class UserJDBCRepository {
     }
 
     public User save(User user) {
-        user.setId(System.currentTimeMillis());
-        String sql = "INSERT INTO users (id, username, email, created_at) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(
-                sql,
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getCreatedAt()
-        );
+        user.setCreatedAt(new Timestamp(new Date().getTime()));
+        String sql = "INSERT INTO users (username, email, created_at) VALUES (?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+                    PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"id"});
+                    stmt.setString(1, user.getUsername());
+                    stmt.setString(2, user.getEmail());
+                    stmt.setTimestamp(3, user.getCreatedAt());
+                    return stmt;
+                }, keyHolder);
+        user.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         return user;
     }
 
