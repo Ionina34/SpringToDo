@@ -100,9 +100,6 @@ public class TaskHibernateRepositoryTest extends TestPostgresContainerConfig {
     void saveTask_Insert_Success() {
         User user = new User();
         user.setId(1L);
-        user.setUsername("'testuser1'");
-        user.setCreatedAt(Timestamp.valueOf("2025-07-10 12:00:00"));
-        user.setEmail("test1@example.com");
 
         Task task = new Task();
         task.setUser(user);

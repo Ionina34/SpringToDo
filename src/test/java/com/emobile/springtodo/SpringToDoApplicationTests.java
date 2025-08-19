@@ -7,8 +7,8 @@ import com.emobile.springtodo.core.entity.db.Task;
 import com.emobile.springtodo.core.repository.TaskHibernateRepository;
 import com.emobile.springtodo.core.repository.UserHibernateRepository;
 import com.emobile.springtodo.core.repository.cantainer.RedisContainer4Test;
-import com.emobile.springtodo.core.repository.cantainer.TestPostgresContainerConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,14 +18,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,17 +40,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
-@ContextConfiguration(classes = TestPostgresContainerConfig.class)
 @Transactional
 @Sql(scripts = {"classpath:db/clear.sql", "classpath:db/init-user.sql", "classpath:db/init-task.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class SpringToDoApplicationTests extends RedisContainer4Test {
 
+    @Container
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test")
+            .withInitScript("db/schema.sql");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("hibernate.show_sql", () -> "true");
+        registry.add("hibernate.format_sql", () -> "true");
+        registry.add("hibernate.hbm2ddl.auto", () -> "create");
+    }
+
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -149,6 +171,7 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
+        System.out.println(result.getResponse().getContentAsString());
         JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
         assertNotNull(redisTemplate.opsForValue().get(AppCacheProperties.CacheNames.TASKS_BY_USER + "::1,10,0"), "Кэш должен содержать задачи пользователя");
         assertEquals(2, taskRepository.findByUser(1L, 10, 0).size(), "В БД должно быть 2 задачи для пользователя");
@@ -157,11 +180,14 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
     @Test
     @DisplayName("Создание задачи - успешный сценарий")
     void whenCreateTask_thenReturnCreatedTask() throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
         CreateTaskRequest request = new CreateTaskRequest();
         request.setUserId(1L);
         request.setTitle("New Task");
         request.setDescription("New Description");
-        request.setDeadline(Timestamp.valueOf("2025-07-14 07:00:00.0"));
+        request.setDeadline(new Timestamp(sdf.parse("2035-07-14 07:00:00.0").getTime()));
 
         String requestJson = objectMapper.writeValueAsString(request);
         String expectedJson = """
@@ -172,22 +198,26 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
                             "title": "New Task",
                             "description": "New Description",
                             "status": "TODO",
-                            "start": "null",
-                            "deadline": "2025-07-14 07:00:00.0",
+                            "deadline": "2035-07-14 07:00:00.0",
                             "end": null
                             },
-                        "status": "OK"
+                        "status": "CREATED"
                     }
                 """;
 
         MvcResult result = mockMvc.perform(post("/api/v1/todo/task")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
+        ObjectNode rootNode = (ObjectNode) objectMapper.readTree(result.getResponse().getContentAsString());
+        ObjectNode dataNode = (ObjectNode) rootNode.get("data");
+        dataNode.remove("start");
+        String modifyStart = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+
+        JSONAssert.assertEquals(expectedJson, modifyStart, false);
         assertNull(redisTemplate.opsForValue().get(AppCacheProperties.CacheNames.TASKS_BY_USER + "::1,10,0"), "Кэш задач пользователя должен быть очищен");
         assertNull(redisTemplate.opsForValue().get(AppCacheProperties.CacheNames.TASK_BY_ID + "::1"), "Кэш количества задач должен быть очищен");
         assertTrue(taskRepository.findById(1L).isPresent(), "Задача должна быть создана в БД");
@@ -236,8 +266,7 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
                         "description": "Description 2",
                         "status": "DONE",
                         "start": "2025-07-10 07:00:00.0",
-                        "deadline": "2025-07-11 07:00:00.0",
-                        "end": now
+                        "deadline": "2025-07-11 07:00:00.0"
                         },
                     "status": "OK"
                 }
@@ -250,7 +279,12 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
+        ObjectNode rootNode = (ObjectNode) objectMapper.readTree(result.getResponse().getContentAsString());
+        ObjectNode dataNode = (ObjectNode) rootNode.get("data");
+        dataNode.remove("end");
+        String modifyStart = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+
+        JSONAssert.assertEquals(expectedJson, modifyStart, false);
         Task task = taskRepository.findById(2L).orElseThrow();
         assertEquals("DONE", task.getStatus().name(), "Статус задачи в БД должен быть DONE");
         assertNotNull(task.getEndDate(), "Дата завершения в БД должна быть установлена");

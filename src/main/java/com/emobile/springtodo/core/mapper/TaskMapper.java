@@ -13,9 +13,11 @@ import java.util.List;
 public interface TaskMapper {
 
     @Mapping(source = "createdAt", target = "start")
-    @Mapping(source = "endData", target = "end")
+    @Mapping(source = "endDate", target = "end")
+    @Mapping(source = "task.user.id", target = "userId")
     TaskDto taskToDto(Task task);
 
+    @Mapping(source = "request.userId", target = "user.id")
     Task requestToTask(CreateTaskRequest request);
 
     default List<TaskDto> listTaskToListTaskDto(List<Task> tasks) {
