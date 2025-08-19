@@ -4,9 +4,8 @@ import com.emobile.springtodo.api.input.CreateTaskRequest;
 import com.emobile.springtodo.api.input.CreateUserRequest;
 import com.emobile.springtodo.core.config.properties.AppCacheProperties;
 import com.emobile.springtodo.core.entity.db.Task;
-import com.emobile.springtodo.core.entity.db.User;
-import com.emobile.springtodo.core.repository.TaskJDBCRepository;
-import com.emobile.springtodo.core.repository.UserJDBCRepository;
+import com.emobile.springtodo.core.repository.TaskHibernateRepository;
+import com.emobile.springtodo.core.repository.UserHibernateRepository;
 import com.emobile.springtodo.core.repository.cantainer.RedisContainer4Test;
 import com.emobile.springtodo.core.repository.cantainer.TestPostgresContainerConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -53,10 +51,10 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
     private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    private TaskJDBCRepository taskRepository;
+    private TaskHibernateRepository taskRepository;
 
     @Autowired
-    private UserJDBCRepository userRepository;
+    private UserHibernateRepository userRepository;
 
     @BeforeEach
     void before() {
@@ -255,7 +253,7 @@ class SpringToDoApplicationTests extends RedisContainer4Test {
         JSONAssert.assertEquals(expectedJson, result.getResponse().getContentAsString(), false);
         Task task = taskRepository.findById(2L).orElseThrow();
         assertEquals("DONE", task.getStatus().name(), "Статус задачи в БД должен быть DONE");
-        assertNotNull(task.getEndData(), "Дата завершения в БД должна быть установлена");
+        assertNotNull(task.getEndDate(), "Дата завершения в БД должна быть установлена");
     }
 
     @Test

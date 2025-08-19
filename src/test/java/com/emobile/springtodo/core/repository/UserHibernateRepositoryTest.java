@@ -8,11 +8,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -21,16 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@Testcontainers
-@ContextConfiguration(classes = TestPostgresContainerConfig.class)
 @Sql(scripts = {"classpath:db/clear.sql", "classpath:db/init-user.sql", "classpath:db/init-task.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
 @Rollback
-public class UserJDBCRepositoryTest {
+public class UserHibernateRepositoryTest  extends TestPostgresContainerConfig{
 
     @Autowired
-    private UserJDBCRepository userRepository;
+    private UserHibernateRepository userRepository;
 
     @Test
     @DisplayName("Поиск пользователя по ID - успешный сценарий")

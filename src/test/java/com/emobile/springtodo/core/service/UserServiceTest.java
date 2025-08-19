@@ -6,7 +6,7 @@ import com.emobile.springtodo.core.entity.dto.UserDto;
 import com.emobile.springtodo.core.exception.ObjectNotFoundException;
 import com.emobile.springtodo.core.exception.UserAlreadyExistsException;
 import com.emobile.springtodo.core.mapper.UserMapper;
-import com.emobile.springtodo.core.repository.UserJDBCRepository;
+import com.emobile.springtodo.core.repository.UserHibernateRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 public class UserServiceTest {
 
     @Mock
-    private UserJDBCRepository userRepository;
+    private UserHibernateRepository userRepository;
 
     @Mock
     private UserMapper userMapper;

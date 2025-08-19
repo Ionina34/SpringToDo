@@ -8,7 +8,7 @@ import com.emobile.springtodo.core.entity.db.User;
 import com.emobile.springtodo.core.entity.dto.TaskDto;
 import com.emobile.springtodo.core.exception.ObjectNotFoundException;
 import com.emobile.springtodo.core.mapper.TaskMapper;
-import com.emobile.springtodo.core.repository.TaskJDBCRepository;
+import com.emobile.springtodo.core.repository.TaskHibernateRepository;
 import com.emobile.springtodo.core.service.aspect.annotation.RightsVerification;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import java.util.List;
 @CacheConfig(cacheManager = "redisCacheManager")
 public class TaskService {
 
-    private final TaskJDBCRepository taskRepository;
+    private final TaskHibernateRepository taskRepository;
     private final UserService userService;
     private final TaskMapper taskMapper;
     private final MeterRegistry meterRegistry;
@@ -65,7 +65,7 @@ public class TaskService {
         User user = userService.findUserById(request.getUserId());
 
         Task task = taskMapper.requestToTask(request);
-        task.setUserId(user.getId());
+        task.setUser(user);
         task.setStatus(TaskStatus.TODO);
         return taskMapper.taskToDto(
                 taskRepository.save(task)
@@ -85,7 +85,7 @@ public class TaskService {
     public TaskDto endTask(Long id, Long userId) throws ObjectNotFoundException {
         Task task = findTaskById(id);
         task.setStatus(TaskStatus.DONE);
-        task.setEndData(new Timestamp(new Date().getTime()));
+        task.setEndDate(new Timestamp(new Date().getTime()));
         meterRegistry.counter("tasks.completed.total").increment();
         return taskMapper.taskToDto(
                 taskRepository.save(task)

@@ -6,7 +6,7 @@ import com.emobile.springtodo.core.config.properties.AppCacheProperties;
 import com.emobile.springtodo.core.entity.db.User;
 import com.emobile.springtodo.core.entity.dto.UserDto;
 import com.emobile.springtodo.core.mapper.UserMapper;
-import com.emobile.springtodo.core.repository.UserJDBCRepository;
+import com.emobile.springtodo.core.repository.UserHibernateRepository;
 import com.emobile.springtodo.core.repository.cantainer.RedisContainer4Test;
 import com.emobile.springtodo.core.repository.cantainer.TestPostgresContainerConfig;
 import com.emobile.springtodo.core.service.UserService;
@@ -41,7 +41,7 @@ public class UserServiceCachingIntegrationTest extends RedisContainer4Test {
     private UserMapper userMapper;
 
     @Autowired
-    private UserJDBCRepository userRepository;
+    private UserHibernateRepository userRepository;
 
     @BeforeEach
     void setUp() {

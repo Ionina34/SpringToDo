@@ -6,7 +6,7 @@ import com.emobile.springtodo.core.entity.db.TaskStatus;
 import com.emobile.springtodo.core.entity.db.User;
 import com.emobile.springtodo.core.entity.dto.TaskDto;
 import com.emobile.springtodo.core.mapper.TaskMapper;
-import com.emobile.springtodo.core.repository.TaskJDBCRepository;
+import com.emobile.springtodo.core.repository.TaskHibernateRepository;
 import com.emobile.springtodo.core.repository.cantainer.RedisContainer4Test;
 import com.emobile.springtodo.core.repository.cantainer.TestPostgresContainerConfig;
 import com.emobile.springtodo.core.service.TaskService;
@@ -56,7 +56,7 @@ public class TaskServiceCachingIntegrationTest extends RedisContainer4Test {
     private MeterRegistry meterRegistry;
 
     @Autowired
-    private TaskJDBCRepository taskRepository;
+    private TaskHibernateRepository taskRepository;
 
     @BeforeEach
     void setUp() {

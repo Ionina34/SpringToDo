@@ -7,7 +7,7 @@ import com.emobile.springtodo.core.entity.dto.UserDto;
 import com.emobile.springtodo.core.exception.ObjectNotFoundException;
 import com.emobile.springtodo.core.exception.UserAlreadyExistsException;
 import com.emobile.springtodo.core.mapper.UserMapper;
-import com.emobile.springtodo.core.repository.UserJDBCRepository;
+import com.emobile.springtodo.core.repository.UserHibernateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,11 +21,11 @@ import java.util.Date;
 @Service
 @CacheConfig(cacheManager = "redisCacheManager")
 public class UserService {
-    private final UserJDBCRepository userRepository;
+    private final UserHibernateRepository userRepository;
     private final UserMapper userMapper;
 
     @Autowired
-    public UserService(UserJDBCRepository userRepository, UserMapper userMapper) {
+    public UserService(UserHibernateRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
     }

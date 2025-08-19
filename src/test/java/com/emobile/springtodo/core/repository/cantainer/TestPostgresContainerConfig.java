@@ -1,39 +1,30 @@
 package com.emobile.springtodo.core.repository.cantainer;
 
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import javax.sql.DataSource;
-
-@TestConfiguration
+@Testcontainers
 public class TestPostgresContainerConfig {
 
-    @Bean
-    public PostgreSQLContainer<?> postgreSQLContainer() {
-        PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16")
-                .withDatabaseName("testdb")
-                .withUsername("test")
-                .withPassword("test")
-                .withInitScript("db/schema.sql");
-        container.start();
-        return container;
-    }
+    @Container
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test")
+            .withInitScript("db/schema.sql");
 
-    @Bean
-    public DataSource dataSource(PostgreSQLContainer<?> postgreSQLContainer) {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl(postgreSQLContainer.getJdbcUrl());
-        dataSource.setUsername(postgreSQLContainer.getUsername());
-        dataSource.setPassword(postgreSQLContainer.getPassword());
-        return dataSource;
-    }
-
-    @Bean
-    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        registry.add("hibernate.dialect", () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("hibernate.show_sql", () -> "true");
+        registry.add("hibernate.format_sql", () -> "true");
+        registry.add("hibernate.hbm2ddl.auto", () -> "create");
     }
 }

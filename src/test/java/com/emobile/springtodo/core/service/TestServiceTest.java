@@ -7,7 +7,7 @@ import com.emobile.springtodo.core.entity.db.User;
 import com.emobile.springtodo.core.entity.dto.TaskDto;
 import com.emobile.springtodo.core.exception.ObjectNotFoundException;
 import com.emobile.springtodo.core.mapper.TaskMapper;
-import com.emobile.springtodo.core.repository.TaskJDBCRepository;
+import com.emobile.springtodo.core.repository.TaskHibernateRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -19,7 +19,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skyscreamer.jsonassert.JSONAssert;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.EnableCaching;
 
 import java.sql.Timestamp;
@@ -37,7 +36,7 @@ import static org.mockito.Mockito.*;
 public class TestServiceTest {
 
     @Mock
-    private TaskJDBCRepository taskRepository;
+    private TaskHibernateRepository taskRepository;
 
     @Mock
     private UserService userService;
@@ -58,12 +57,15 @@ public class TestServiceTest {
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
     Timestamp timestamp;
+    private User user;
 
     @BeforeEach
     void setUp() throws ParseException {
         objectMapper = new ObjectMapper();
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         timestamp = new Timestamp(sdf.parse("2026-03-15 00:00:00.0").getTime());
+        user = new User();
+        user.setId(1L);
     }
 
     @Test
@@ -72,13 +74,13 @@ public class TestServiceTest {
         Long taskId = 1L;
         Task task = new Task();
         task.setId(taskId);
-        task.setUserId(1L);
+        task.setUser(user);
         task.setTitle("Test Task");
         task.setDescription("Test Description");
         task.setStatus(TaskStatus.TODO);
         task.setDeadline(timestamp);
         task.setCreatedAt(timestamp);
-        task.setEndData(timestamp);
+        task.setEndDate(timestamp);
 
         TaskDto taskDto = new TaskDto();
         taskDto.setId(taskId);
@@ -88,7 +90,7 @@ public class TestServiceTest {
         taskDto.setStatus(TaskStatus.TODO);
         taskDto.setDeadline(task.getDeadline());
         taskDto.setStart(task.getCreatedAt());
-        taskDto.setEnd(task.getEndData());
+        taskDto.setEnd(task.getEndDate());
 
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskMapper.taskToDto(task)).thenReturn(taskDto);
@@ -122,18 +124,18 @@ public class TestServiceTest {
     @DisplayName("Получение списка задач пользователя - успешный сценарий")
     void getTasksByUser_Success() throws Exception {
         Long userId = 1L;
-        Long taskId =1L;
+        Long taskId = 1L;
         int limit = 10;
         int offset = 0;
         Task task = new Task();
         task.setId(taskId);
-        task.setUserId(userId);
+        task.setUser(user);
         task.setTitle("Test Task");
         task.setDescription("Test Description");
         task.setStatus(TaskStatus.TODO);
         task.setDeadline(timestamp);
         task.setCreatedAt(timestamp);
-        task.setEndData(timestamp);
+        task.setEndDate(timestamp);
 
         TaskDto taskDto = new TaskDto();
         taskDto.setId(taskId);
@@ -143,7 +145,7 @@ public class TestServiceTest {
         taskDto.setStatus(TaskStatus.TODO);
         taskDto.setDeadline(task.getDeadline());
         taskDto.setStart(task.getCreatedAt());
-        taskDto.setEnd(task.getEndData());
+        taskDto.setEnd(task.getEndDate());
 
         when(taskRepository.findByUser(userId, limit, offset)).thenReturn(List.of(task));
         when(taskMapper.listTaskToListTaskDto(List.of(task))).thenReturn(List.of(taskDto));
@@ -188,13 +190,13 @@ public class TestServiceTest {
 
         Task task = new Task();
         task.setId(1L);
-        task.setUserId(1L);
+        task.setUser(user);
         task.setTitle("Test Task");
         task.setDescription("Test Description");
         task.setStatus(TaskStatus.TODO);
         task.setDeadline(request.getDeadline());
         task.setCreatedAt(timestamp);
-        task.setEndData(request.getDeadline());
+        task.setEndDate(request.getDeadline());
 
         TaskDto taskDto = new TaskDto();
         taskDto.setId(1L);
@@ -204,7 +206,7 @@ public class TestServiceTest {
         taskDto.setStatus(TaskStatus.TODO);
         taskDto.setDeadline(task.getDeadline());
         taskDto.setStart(task.getCreatedAt());
-        taskDto.setEnd(task.getEndData());
+        taskDto.setEnd(task.getEndDate());
 
         when(userService.findUserById(request.getUserId())).thenReturn(user);
         when(taskMapper.requestToTask(request)).thenReturn(task);
@@ -247,23 +249,23 @@ public class TestServiceTest {
         Long userId = 1L;
         Task task = new Task();
         task.setId(taskId);
-        task.setUserId(userId);
+        task.setUser(user);
         task.setTitle("Test Task");
         task.setDescription("Test Description");
         task.setStatus(TaskStatus.TODO);
         task.setDeadline(timestamp);
         task.setCreatedAt(timestamp);
-        task.setEndData(timestamp);
+        task.setEndDate(timestamp);
 
         Task updatedTask = new Task();
         updatedTask.setId(taskId);
-        updatedTask.setUserId(userId);
+        updatedTask.setUser(user);
         updatedTask.setTitle("Test Task");
         updatedTask.setDescription("Test Description");
         updatedTask.setStatus(TaskStatus.IN_PROGRESS);
         updatedTask.setDeadline(task.getDeadline());
         updatedTask.setCreatedAt(task.getCreatedAt());
-        updatedTask.setEndData(task.getEndData());
+        updatedTask.setEndDate(task.getEndDate());
 
         TaskDto taskDto = new TaskDto();
         taskDto.setId(taskId);
@@ -273,7 +275,7 @@ public class TestServiceTest {
         taskDto.setStatus(TaskStatus.IN_PROGRESS);
         taskDto.setDeadline(task.getDeadline());
         taskDto.setStart(task.getCreatedAt());
-        taskDto.setEnd(task.getEndData());
+        taskDto.setEnd(task.getEndDate());
 
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
@@ -314,23 +316,23 @@ public class TestServiceTest {
         Long userId = 1L;
         Task task = new Task();
         task.setId(taskId);
-        task.setUserId(userId);
+        task.setUser(user);
         task.setTitle("Test Task");
         task.setDescription("Test Description");
         task.setStatus(TaskStatus.IN_PROGRESS);
         task.setDeadline(timestamp);
         task.setCreatedAt(timestamp);
-        task.setEndData(timestamp);
+        task.setEndDate(timestamp);
 
         Task updatedTask = new Task();
         updatedTask.setId(taskId);
-        updatedTask.setUserId(userId);
+        updatedTask.setUser(user);
         updatedTask.setTitle("Test Task");
         updatedTask.setDescription("Test Description");
         updatedTask.setStatus(TaskStatus.DONE);
         updatedTask.setDeadline(task.getDeadline());
         updatedTask.setCreatedAt(task.getCreatedAt());
-        updatedTask.setEndData(timestamp);
+        updatedTask.setEndDate(timestamp);
 
         TaskDto taskDto = new TaskDto();
         taskDto.setId(taskId);
@@ -340,7 +342,7 @@ public class TestServiceTest {
         taskDto.setStatus(TaskStatus.DONE);
         taskDto.setDeadline(task.getDeadline());
         taskDto.setStart(task.getCreatedAt());
-        taskDto.setEnd(updatedTask.getEndData());
+        taskDto.setEnd(updatedTask.getEndDate());
 
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);

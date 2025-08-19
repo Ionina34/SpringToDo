@@ -25,12 +25,20 @@
         <springdoc.version>2.5.0</springdoc.version>
         <jsonassert.version>1.5.3</jsonassert.version>
         <testcontainers.version>1.20.4</testcontainers.version>
+        <hibernate.version>6.5.3.Final</hibernate.version>
+        <hikari.version>6.0.0</hikari.version>
+        <hibernate.hikari.version>6.5.3.Final</hibernate.hikari.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>6.1.14</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -46,15 +54,27 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jdbc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikari.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-hikaricp</artifactId>
+            <version>${hibernate.hikari.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

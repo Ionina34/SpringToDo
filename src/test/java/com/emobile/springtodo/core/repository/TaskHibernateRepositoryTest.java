@@ -2,6 +2,7 @@ package com.emobile.springtodo.core.repository;
 
 import com.emobile.springtodo.core.entity.db.Task;
 import com.emobile.springtodo.core.entity.db.TaskStatus;
+import com.emobile.springtodo.core.entity.db.User;
 import com.emobile.springtodo.core.repository.cantainer.TestPostgresContainerConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,11 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -23,15 +22,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-@Testcontainers
-@ContextConfiguration(classes = TestPostgresContainerConfig.class)
 @Sql(scripts = {"classpath:db/clear.sql", "classpath:db/init-user.sql", "classpath:db/init-task.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Transactional
 @Rollback
-public class TaskJDBCRepositoryTest {
+public class TaskHibernateRepositoryTest extends TestPostgresContainerConfig {
+
     @Autowired
-    private TaskJDBCRepository taskRepository;
+    private TaskHibernateRepository taskRepository;
 
     @Test
     @DisplayName("Поиск задачи по ID - успешный сценарий")
@@ -40,13 +38,13 @@ public class TaskJDBCRepositoryTest {
 
         assertTrue(task.isPresent());
         assertEquals(1L, task.get().getId());
-        assertEquals(1L, task.get().getUserId());
+        assertEquals(1L, task.get().getUser().getId());
         assertEquals("Test Task 1", task.get().getTitle());
         assertEquals("Description 1", task.get().getDescription());
         assertEquals(TaskStatus.TODO, task.get().getStatus());
         assertEquals(Timestamp.valueOf("2025-07-11 12:00:00"), task.get().getDeadline());
         assertEquals(Timestamp.valueOf("2025-07-10 12:00:00"), task.get().getCreatedAt());
-        assertNull(task.get().getEndData());
+        assertNull(task.get().getEndDate());
     }
 
     @Test
@@ -100,8 +98,14 @@ public class TaskJDBCRepositoryTest {
     @Test
     @DisplayName("Сохранение задачи - вставка новой задачи")
     void saveTask_Insert_Success() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("'testuser1'");
+        user.setCreatedAt(Timestamp.valueOf("2025-07-10 12:00:00"));
+        user.setEmail("test1@example.com");
+
         Task task = new Task();
-        task.setUserId(1L);
+        task.setUser(user);
         task.setTitle("New Task");
         task.setDescription("New Description");
         task.setStatus(TaskStatus.TODO);
