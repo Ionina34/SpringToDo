@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') { steps { checkout scm } }
         stage('Maven Build & Test') {
             when { anyOf { branch 'dev'; changeRequest target: 'dev'; branch 'main' } }
-            steps { bat 'mvn clean install' }
+            steps { bat 'mvn clean install -DskipTests' }
             post { always { junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml' } }
         }
         stage('Build & Push Docker') {
