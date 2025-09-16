@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_HUB_REPO = 'dasha499/spring-todo'
+        DOCKER_HUB_REPO = 'yourusername/spring-app'
         DOCKER_CREDS = credentials('docker-hub-creds')
         IMAGE_TAG = "${env.BUILD_ID}"
     }
