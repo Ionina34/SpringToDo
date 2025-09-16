@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') { steps { checkout scm } }
         stage('Maven Build & Test') {
             when { anyOf { branch 'dev'; changeRequest target: 'dev'; branch 'main' } }
-            steps { sh 'mvn clean install' }
+            steps { bat 'mvn clean install' }
             post { always { junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml' } }
         }
         stage('Build & Push Docker') {
@@ -21,7 +21,7 @@ pipeline {
             steps {
                 script {
                     def image = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
-                    sh "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
+                    bat "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
                     image.push()
                     image.push('latest')
                 }
