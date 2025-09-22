@@ -22,7 +22,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                      script {
                        def image = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
-                       bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
+                       bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                        image.push()
                        image.push('latest')
                      }
