@@ -3,7 +3,6 @@ pipeline {
     tools {
         maven 'Maven3'
         jdk 'JDK21'
-        docker 'Docker'
     }
     environment {
         DOCKER_HUB_REPO = 'dasha499/spring-todo'
