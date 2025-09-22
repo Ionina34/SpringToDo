@@ -3,6 +3,7 @@ pipeline {
     tools {
         maven 'Maven3'
         jdk 'JDK21'
+        docker 'Docker'
     }
     environment {
         DOCKER_HUB_REPO = 'dasha499/spring-todo'
@@ -19,11 +20,13 @@ pipeline {
         stage('Build & Push Docker') {
             when { branch 'main' }
             steps {
-                script {
-                    def image = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
-                    bat "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
-                    image.push()
-                    image.push('latest')
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                     script {
+                       def image = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
+                       bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
+                       image.push()
+                       image.push('latest')
+                     }
                 }
             }
         }
